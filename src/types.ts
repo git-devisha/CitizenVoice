@@ -8,7 +8,8 @@ export interface Department {
 }
 
 export interface Complaint {
-  id: string;
+  _id: string;
+  id?: string; // For backward compatibility
   title: string;
   description: string;
   department: string;
@@ -23,10 +24,26 @@ export interface Complaint {
     };
     area: string;
   };
-  timestamp: Date;
+  timestamp?: Date;
+  createdAt: string;
+  updatedAt: string;
   attachments?: string[];
   anonymous: boolean;
-  assignedTo?: string;
+  assignedTo?: {
+    _id: string;
+    name: string;
+    email: string;
+  };
+  statusHistory?: Array<{
+    status: string;
+    changedBy?: {
+      _id: string;
+      name: string;
+      email: string;
+    };
+    changedAt: string;
+    notes?: string;
+  }>;
 }
 
 export interface LocationData {
@@ -39,15 +56,16 @@ export interface LocationData {
 }
 
 export interface User {
-  id: string;
+  _id: string;
+  id?: string; // For backward compatibility
   email: string;
   name: string;
-  role: 'super_admin' | 'admin' | 'department_head' | 'officer';
+  role: 'super_admin' | 'admin' | 'department_head' | 'officer' | 'civil';
   department?: string;
   permissions: Permission[];
   isActive: boolean;
-  createdAt: Date;
-  lastLogin?: Date;
+  createdAt: string;
+  lastLogin?: string;
 }
 
 export interface Permission {
@@ -60,9 +78,10 @@ export interface Permission {
 
 export interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, role: 'civil' | 'admin') => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (resource: string, action: string) => boolean;
   canAccessDepartment: (departmentId: string) => boolean;
+  isLoading?: boolean;
 }

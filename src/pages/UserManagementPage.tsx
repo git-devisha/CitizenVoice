@@ -1,26 +1,13 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Plus, Edit, Mail, Calendar, CheckCircle, XCircle } from "lucide-react";
 import ProtectedRoute from "../components/ProtectedRoute";
-
-// import { useAuth } from "../hooks/useAuth";
-// import { useAuth } from "../contexts/AuthContext";
-import { AuthContext } from "../contexts/AuthContext";
-import { useContext } from "react";
-
+import { useAuth } from "../hooks/useAuth";
 import { mockUsers, permissions } from "../data/mockUsers";
 import { User } from "../types";
-
-// Example departments array; replace with your actual data or import
-const departments = [
-  { id: "dept1", name: "Human Resources" },
-  { id: "dept2", name: "Finance" },
-  { id: "dept3", name: "Engineering" },
-];
+import { departments } from "../data/departments";
 
 const UserManagementPage: React.FC = () => {
-  // const { user: currentUser } = useAuth();
-  const authContext = useContext(AuthContext);
-  const currentUser = authContext?.user;
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>(mockUsers);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -78,18 +65,15 @@ const UserManagementPage: React.FC = () => {
       );
 
       const userData: User = {
+        _id: user?._id || Date.now().toString(),
         id: user?.id || Date.now().toString(),
         name: formData.name,
         email: formData.email,
-        role: formData.role as
-          | "super_admin"
-          | "admin"
-          | "department_head"
-          | "officer",
+        role: formData.role as User["role"],
         department: formData.department || undefined,
         permissions: selectedPermissions,
         isActive: formData.isActive,
-        createdAt: user?.createdAt || new Date(),
+        createdAt: user?.createdAt || new Date().toISOString(),
         lastLogin: user?.lastLogin,
       };
 
@@ -150,11 +134,7 @@ const UserManagementPage: React.FC = () => {
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
-                      role: e.target.value as
-                        | "super_admin"
-                        | "admin"
-                        | "department_head"
-                        | "officer",
+                      role: e.target.value as User["role"],
                     }))
                   }
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -215,7 +195,7 @@ const UserManagementPage: React.FC = () => {
                           setFormData((prev) => ({
                             ...prev,
                             permissions: prev.permissions.filter(
-                              (id: string) => id !== permission.id
+                              (id) => id !== permission.id
                             ),
                           }));
                         }
@@ -335,7 +315,7 @@ const UserManagementPage: React.FC = () => {
                             <span className="text-white font-medium">
                               {user.name
                                 .split(" ")
-                                .map((n: string) => n[0])
+                                .map((n) => n[0])
                                 .join("")}
                             </span>
                           </div>
@@ -410,7 +390,7 @@ const UserManagementPage: React.FC = () => {
                             <Edit className="w-4 h-4" />
                           </button>
                           <button
-                            onClick={() => toggleUserStatus(user.id)}
+                            onClick={() => toggleUserStatus(user.id!)}
                             className={`p-1 rounded ${
                               user.isActive
                                 ? "text-red-600 hover:text-red-900"

@@ -1,24 +1,31 @@
 import { useState } from "react";
 import { LogIn, Eye, EyeOff, Shield } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm: React.FC = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const { login } = useAuth();
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
 
     try {
-      const success = await login(email, password);
-      if (!success) {
+      const user = await login(email, password, "admin");
+      if (!user || typeof user !== "object" || !("role" in user)) {
         setError("Invalid credentials or account is inactive");
+      } else {
+        const role = (user as { role: string }).role;
+        if (role === "admin") navigate("/admin");
+        else if (role === "user")
+          navigate("/user-dashboard"); // Create this route
+        else if (role === "official") navigate("/official-dashboard");
       }
     } catch {
       setError("Login failed. Please try again.");

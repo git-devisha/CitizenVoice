@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
   Search,
-  Download,
-  BarChart3,
   Users,
   AlertTriangle,
   UserCheck,
+  LogOut,
+  Shield,
 } from "lucide-react";
 import ComplaintCard from "../components/ComplaintCard";
 import ProtectedRoute from "../components/ProtectedRoute";
@@ -14,8 +15,8 @@ import { departments } from "../data/departments";
 import { useAuth } from "../hooks/useAuth";
 import { apiService } from "../services/api";
 
-const AdminPage: React.FC = () => {
-  const { user, hasPermission, canAccessDepartment } = useAuth();
+const AdminDashboard: React.FC = () => {
+  const { user, hasPermission, canAccessDepartment, logout } = useAuth();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,7 +68,14 @@ const AdminPage: React.FC = () => {
   useEffect(() => {
     loadComplaints();
     loadStats();
-  }, [loadComplaints, loadStats]);
+  }, [
+    searchTerm,
+    selectedDepartment,
+    selectedStatus,
+    selectedPriority,
+    loadComplaints,
+    loadStats,
+  ]);
 
   const updateComplaintStatus = async (
     complaintId: string,
@@ -108,26 +116,69 @@ const AdminPage: React.FC = () => {
       canAccessDepartment(dept.id)
   );
 
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "super_admin":
+        return "bg-purple-100 text-purple-800";
+      case "admin":
+        return "bg-blue-100 text-blue-800";
+      case "department_head":
+        return "bg-green-100 text-green-800";
+      case "officer":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const formatRole = (role: string) => {
+    return role
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   if (selectedComplaint) {
     return (
       <ProtectedRoute
         requiredPermission={{ resource: "complaints", action: "read" }}
       >
-        <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-              <div className="bg-blue-600 px-6 py-4">
-                <div className="flex items-center justify-between">
+        <div className="min-h-screen bg-gray-50">
+          {/* Header */}
+          <div className="bg-white shadow-sm border-b border-gray-200">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
                   <button
                     onClick={() => setSelectedComplaint(null)}
-                    className="text-white hover:text-gray-200 transition-colors"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
                   >
                     ← Back to Dashboard
                   </button>
-                  <h2 className="text-xl font-semibold text-white">
-                    Complaint Details
-                  </h2>
+                  <div>
+                    <h1 className="text-xl font-bold text-gray-900">
+                      Complaint Details
+                    </h1>
+                    <p className="text-sm text-gray-500">Admin Dashboard</p>
+                  </div>
                 </div>
+                <button
+                  onClick={logout}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+            <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+              <div className="bg-blue-600 px-6 py-4">
+                <h2 className="text-xl font-semibold text-white">
+                  Complaint Details
+                </h2>
               </div>
 
               <div className="p-6">
@@ -300,42 +351,70 @@ const AdminPage: React.FC = () => {
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Admin Dashboard
-                </h1>
-                <p className="text-gray-600">
-                  Manage and track complaint resolution
-                  {user?.department && (
-                    <span className="ml-2 text-blue-600">
-                      •{" "}
-                      {departments.find((d) => d.id === user.department)?.name}
-                    </span>
-                  )}
-                </p>
+              <div className="flex items-center space-x-4">
+                <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                  <Shield className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold text-gray-900">
+                    Admin Dashboard
+                  </h1>
+                  <p className="text-sm text-gray-500">
+                    Manage and track complaint resolution
+                    {user?.department && (
+                      <span className="ml-2 text-blue-600">
+                        •{" "}
+                        {
+                          departments.find((d) => d.id === user.department)
+                            ?.name
+                        }
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
-              <div className="flex space-x-4">
-                {hasPermission("analytics", "read") && (
-                  <>
-                    <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-                      <Download className="w-4 h-4" />
-                      <span>Export</span>
-                    </button>
-                    <button className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
-                      <BarChart3 className="w-4 h-4" />
-                      <span>Analytics</span>
-                    </button>
-                  </>
+              <div className="flex items-center space-x-4">
+                {user && (
+                  <div className="flex items-center space-x-3">
+                    <div className="text-right">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.name}
+                      </p>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getRoleColor(
+                          user.role
+                        )}`}
+                      >
+                        {formatRole(user.role)}
+                      </span>
+                    </div>
+                  </div>
                 )}
+                {hasPermission("users", "read") && (
+                  <Link
+                    to="/admin/users"
+                    className="flex items-center space-x-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>Users</span>
+                  </Link>
+                )}
+                <button
+                  onClick={logout}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>Sign Out</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Stats */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow-sm p-6">
               <div className="flex items-center justify-between">
@@ -495,4 +574,4 @@ const AdminPage: React.FC = () => {
   );
 };
 
-export default AdminPage;
+export default AdminDashboard;

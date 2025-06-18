@@ -1,4 +1,4 @@
-import { FC } from "react";
+import React from "react";
 import { useAuth } from "../hooks/useAuth";
 import { AlertCircle } from "lucide-react";
 
@@ -12,7 +12,7 @@ interface ProtectedRouteProps {
   departmentId?: string;
 }
 
-const ProtectedRoute: FC<ProtectedRouteProps> = ({
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredPermission,
   requiredRole,
