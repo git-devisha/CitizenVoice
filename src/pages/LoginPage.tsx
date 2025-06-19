@@ -6,6 +6,7 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
+  UserPlus,
 } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 
@@ -13,16 +14,32 @@ type UserRole = "civil" | "admin";
 
 const LoginPage: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [department, setDepartment] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { login, register } = useAuth();
+
+  const departments = [
+    { id: "public-works", name: "Public Works" },
+    { id: "health-sanitation", name: "Health & Sanitation" },
+    { id: "law-order", name: "Law & Order" },
+    { id: "education", name: "Education" },
+    { id: "transport", name: "Transport" },
+    { id: "environment", name: "Environment" },
+    { id: "utilities", name: "Utilities" },
+    { id: "housing", name: "Housing & Planning" },
+  ];
 
   const handleRoleSelect = (role: UserRole) => {
     setSelectedRole(role);
     setError("");
+    setIsRegistering(false);
     // Pre-fill demo credentials based on role
     if (role === "civil") {
       setEmail("citizen@example.com");
@@ -39,14 +56,40 @@ const LoginPage: React.FC = () => {
     setError("");
 
     try {
-      const success = await login(email, password, selectedRole!);
-      if (success) {
-        // Navigation will be handled by the App component based on user role
+      if (isRegistering) {
+        if (password !== confirmPassword) {
+          setError("Passwords do not match");
+          setIsLoading(false);
+          return;
+        }
+
+        const userData = {
+          email,
+          password,
+          name,
+          role: selectedRole === "admin" ? "officer" : "civil",
+          department: selectedRole === "admin" ? department : undefined,
+        };
+
+        const success = await register(userData);
+        if (success) {
+          // Auto-login after successful registration
+          await login(email, password, selectedRole!);
+        } else {
+          setError("Registration failed. Email might already exist.");
+        }
       } else {
-        setError("Invalid credentials or account is inactive");
+        const success = await login(email, password, selectedRole!);
+        if (!success) {
+          setError("Invalid credentials or account is inactive");
+        }
       }
-    } catch {
-      setError("Login failed. Please try again.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message || "Operation failed. Please try again.");
+      } else {
+        setError("Operation failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -225,10 +268,16 @@ const LoginPage: React.FC = () => {
           </div>
 
           <h2 className="text-3xl font-bold text-gray-900">
-            {selectedRole === "civil" ? "Civil User Login" : "Admin Portal"}
+            {isRegistering
+              ? `Register as ${
+                  selectedRole === "civil" ? "Civil User" : "Admin"
+                }`
+              : `${selectedRole === "civil" ? "Civil User" : "Admin"} Login`}
           </h2>
           <p className="mt-2 text-gray-600">
-            {selectedRole === "civil"
+            {isRegistering
+              ? "Create your account"
+              : selectedRole === "civil"
               ? "Access your complaint dashboard"
               : "Sign in to manage complaints"}
           </p>
@@ -236,6 +285,26 @@ const LoginPage: React.FC = () => {
 
         <div className="bg-white rounded-xl shadow-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {isRegistering && (
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Full Name
+                </label>
+                <input
+                  id="name"
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Enter your full name"
+                />
+              </div>
+            )}
+
             <div>
               <label
                 htmlFor="email"
@@ -253,6 +322,31 @@ const LoginPage: React.FC = () => {
                 placeholder="Enter your email"
               />
             </div>
+
+            {isRegistering && selectedRole === "admin" && (
+              <div>
+                <label
+                  htmlFor="department"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Department
+                </label>
+                <select
+                  id="department"
+                  required
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((dept) => (
+                    <option key={dept.id} value={dept.id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div>
               <label
@@ -285,6 +379,26 @@ const LoginPage: React.FC = () => {
               </div>
             </div>
 
+            {isRegistering && (
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Confirm Password
+                </label>
+                <input
+                  id="confirmPassword"
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Confirm your password"
+                />
+              </div>
+            )}
+
             {error && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                 <p className="text-red-700 text-sm">{error}</p>
@@ -305,13 +419,44 @@ const LoginPage: React.FC = () => {
               ) : (
                 <Shield className="w-5 h-5" />
               )}
-              <span>{isLoading ? "Signing in..." : "Sign In"}</span>
+              <span>
+                {isLoading
+                  ? isRegistering
+                    ? "Creating Account..."
+                    : "Signing in..."
+                  : isRegistering
+                  ? "Create Account"
+                  : "Sign In"}
+              </span>
             </button>
+
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setError("");
+                  setEmail("");
+                  setPassword("");
+                  setConfirmPassword("");
+                  setName("");
+                  setDepartment("");
+                }}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center space-x-1 mx-auto"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span>
+                  {isRegistering
+                    ? "Already have an account? Sign in"
+                    : "Need an account? Register here"}
+                </span>
+              </button>
+            </div>
           </form>
         </div>
 
         {/* Demo Accounts for Admin */}
-        {selectedRole === "admin" && (
+        {selectedRole === "admin" && !isRegistering && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Demo Admin Accounts
@@ -349,7 +494,7 @@ const LoginPage: React.FC = () => {
         )}
 
         {/* Demo Account for Civil */}
-        {selectedRole === "civil" && (
+        {selectedRole === "civil" && !isRegistering && (
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Demo Civil Account

@@ -5,6 +5,8 @@ export interface Department {
   icon: string;
   officials: string[];
   color: string;
+  // For future image support:
+  // image?: string; // URL to department image
 }
 
 export interface Complaint {
@@ -66,6 +68,9 @@ export interface User {
   isActive: boolean;
   createdAt: string;
   lastLogin?: string;
+  // Profile fields
+  phone?: string;
+  avatar?: string;
 }
 
 export interface Permission {
@@ -79,6 +84,19 @@ export interface Permission {
 export interface AuthContextType {
   user: User | null;
   login: (email: string, password: string, role: 'civil' | 'admin') => Promise<boolean>;
+  register: (userData: {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+    department?: string;
+  }) => Promise<boolean>;
+  updateProfile: (profileData: {
+    name: string;
+    email: string;
+    department?: string;
+    phone?: string;
+  }) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
   hasPermission: (resource: string, action: string) => boolean;

@@ -4,19 +4,19 @@ import {
   Users,
   CheckCircle,
   TrendingUp,
-  LogOut,
   Plus,
   Search,
 } from "lucide-react";
 import DepartmentCard from "../components/DepartmentCard";
 import ComplaintForm from "../components/ComplaintForm";
 import ComplaintCard from "../components/ComplaintCard";
+import Header from "../components/Header";
 import { departments } from "../data/departments";
 import { Department, Complaint } from "../types";
 import { useAuth } from "../hooks/useAuth";
 
 const CivilDashboard: React.FC = () => {
-  const { logout } = useAuth();
+  useAuth();
   const [selectedDepartment, setSelectedDepartment] =
     useState<Department | null>(null);
   const [showMyComplaints, setShowMyComplaints] = useState(false);
@@ -28,13 +28,13 @@ const CivilDashboard: React.FC = () => {
       icon: MessageSquare,
       label: "Total Complaints",
       value: "1,234",
-      color: "text-blue-600",
+      color: "text-green-600",
     },
     {
       icon: CheckCircle,
       label: "Resolved",
       value: "987",
-      color: "text-green-600",
+      color: "text-emerald-600",
     },
     {
       icon: TrendingUp,
@@ -74,31 +74,7 @@ const CivilDashboard: React.FC = () => {
   if (selectedDepartment) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    CitizenVoice
-                  </h1>
-                  <p className="text-sm text-gray-500">Civil Dashboard</p>
-                </div>
-              </div>
-              <button
-                onClick={logout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
+        <Header />
         <div className="py-8 px-4 sm:px-6 lg:px-8">
           <ComplaintForm
             department={selectedDepartment}
@@ -112,37 +88,24 @@ const CivilDashboard: React.FC = () => {
   if (showMyComplaints) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <div className="bg-white shadow-sm border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setShowMyComplaints(false)}
-                  className="text-green-600 hover:text-green-700 text-sm font-medium"
-                >
-                  ← Back to Dashboard
-                </button>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">
-                    My Complaints
-                  </h1>
-                  <p className="text-sm text-gray-500">
-                    Track your submitted complaints
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={logout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <Header />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <button
+                onClick={() => setShowMyComplaints(false)}
+                className="text-green-600 hover:text-green-700 text-sm font-medium mb-2"
+              >
+                ← Back to Dashboard
+              </button>
+              <h1 className="text-2xl font-bold text-gray-900">
+                My Complaints
+              </h1>
+              <p className="text-gray-600">Track your submitted complaints</p>
+            </div>
+          </div>
+
           {loading ? (
             <div className="text-center py-12">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
@@ -181,40 +144,7 @@ const CivilDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-900">
-                  CitizenVoice
-                </h1>
-                <p className="text-sm text-gray-500">Civil Dashboard</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={handleShowMyComplaints}
-                className="flex items-center space-x-2 px-4 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-              >
-                <Search className="w-4 h-4" />
-                <span>My Complaints</span>
-              </button>
-              <button
-                onClick={logout}
-                className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Header />
 
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-green-600 to-emerald-700 text-white">

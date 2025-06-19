@@ -1,14 +1,5 @@
 const API_BASE_URL = 'http://localhost:3001/api';
 
-interface UserData {
-  name: string;
-  email: string;
-  password?: string;
-  role?: string;
-  status?: string;
-  // Add other fields as needed
-}
-
 class ApiService {
   private getAuthHeaders() {
     const token = localStorage.getItem('authToken');
@@ -36,9 +27,38 @@ class ApiService {
     return this.handleResponse(response);
   }
 
+  async register(userData: {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+    department?: string;
+  }) {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    return this.handleResponse(response);
+  }
+
   async getCurrentUser() {
     const response = await fetch(`${API_BASE_URL}/auth/me`, {
       headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async updateProfile(profileData: {
+    name: string;
+    email: string;
+    department?: string;
+    phone?: string;
+  }) {
+    const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+      method: 'PUT',
+      headers: this.getAuthHeaders(),
+      body: JSON.stringify(profileData)
     });
     return this.handleResponse(response);
   }
@@ -117,7 +137,23 @@ class ApiService {
     });
     return this.handleResponse(response);
   }
-  async createUser(userData: UserData) {
+
+  // User endpoints
+  async getUsers() {
+    const response = await fetch(`${API_BASE_URL}/users`, {
+      headers: this.getAuthHeaders()
+    });
+    return this.handleResponse(response);
+  }
+
+  async createUser(userData: {
+    email: string;
+    password: string;
+    name: string;
+    role: string;
+    department?: string;
+    [key: string]: unknown;
+  }) {
     const response = await fetch(`${API_BASE_URL}/users`, {
       method: 'POST',
       headers: this.getAuthHeaders(),
@@ -126,7 +162,17 @@ class ApiService {
     return this.handleResponse(response);
   }
 
-  async updateUser(id: string, userData: UserData) {
+  async updateUser(
+    id: string,
+    userData: {
+      email?: string;
+      password?: string;
+      name?: string;
+      role?: string;
+      department?: string;
+      [key: string]: unknown;
+    }
+  ) {
     const response = await fetch(`${API_BASE_URL}/users/${id}`, {
       method: 'PUT',
       headers: this.getAuthHeaders(),
